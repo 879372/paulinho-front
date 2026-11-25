@@ -1,3 +1,4 @@
+import { AdiarCobrancaButton } from '../components/AdiarCobrancaButton';
 import { Fragment, useCallback, useEffect, useState, type FormEvent } from 'react';
 import { PageHeader } from '../components/PageHeader';
 import { Alert } from '../components/Alert';
@@ -162,7 +163,7 @@ export function OperacoesPage({ modulo }: { modulo: 'motos' | 'animais' | 'finan
         <Lista titulo="Contratos de aluguel" itens={recursos.alugueis} vazio="Nenhum aluguel registrado." render={item => <div className="list-row"><span className="client-avatar">{iniciais(String(item.cliente_nome))}</span><div className="list-main"><b>{String(item.cliente_nome)} · {String(item.placa)}</b><span>{dataBR(item.inicio)} até {dataBR(item.fim)} · {dinheiro(item.valor)} / {String(item.periodicidade)}</span>
           <button type="button" className="contract-pdf-button contract-inline" onClick={() => void contratoAluguel(item)}><Icon name="file" size={16}/><PdfLabel documento="contrato PDF"/></button>
           <AssinaturaPanel compacto base={`/operacoes/alugueis/${item.id}`} inicial={item as AssinaturaInfo} nomeArquivo={`contrato-locacao-${String(item.placa)}-${item.id}-assinado.pdf`}/>
-          <div className="sub-list">{(item.cobrancas as Registro[]).map(cobranca => { const pago = Boolean(cobranca.pago_em); const atrasado = !pago && String(cobranca.vencimento) < hoje(); return <div className="sub-row" key={cobranca.id}><span><b>{dinheiro(cobranca.valor)}</b>{pago ? `Pago em ${dataBR(cobranca.pago_em)}` : `Vence ${dataBR(cobranca.vencimento)}`}</span>{pago ? <span className="status paga">Pago</span> : <button type="button" className={`pay is-primary${atrasado ? ' late' : ''}`} disabled={salvando} onClick={() => receber(cobranca.id)}><Icon name="check" size={16}/>Receber</button>}</div>; })}</div>
+          <div className="sub-list">{(item.cobrancas as Registro[]).map(cobranca => { const pago = Boolean(cobranca.pago_em); const atrasado = !pago && String(cobranca.vencimento) < hoje(); return <div className="sub-row" key={cobranca.id}><span><b>{dinheiro(cobranca.valor)}</b>{pago ? `Pago em ${dataBR(cobranca.pago_em)}` : `Vence ${dataBR(cobranca.vencimento)}`}</span>{pago ? <span className="status paga">Pago</span> : cobranca.transferida_para ? <span className="status transferida">Transferida</span> : <div className="payment-actions"><button type="button" className={`pay is-primary${atrasado ? ' late' : ''}`} disabled={salvando} onClick={() => receber(cobranca.id)}><Icon name="check" size={16}/>Receber</button><AdiarCobrancaButton id={cobranca.id} aluguel/></div>}</div>; })}</div>
         </div></div>}/>
       </>}
       {modulo === 'animais' && <>

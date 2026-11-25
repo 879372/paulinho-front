@@ -860,3 +860,19 @@ a.metric:hover { border-color: var(--border-strong); }
 .pdf-action-desktop { display: none; }
 .pdf-action-mobile { display: inline; }
 @media(min-width:1024px) { .pdf-action-desktop { display: inline; } .pdf-action-mobile { display: none; } .pdf-actions > button { flex: none; } }
+
+.pdf-actions > button { justify-content: flex-start; text-align: left; }
+.pdf-actions > button > span { display: block; }
+.pdf-actions small { display: block; margin-top: 3px; font-size: 12px; font-weight: 500; color: var(--text-2); white-space: normal; }
+.payment-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.action-error { color: var(--danger); font-size: 13px; white-space: normal; }
+.status.transferida { color: var(--info); background: var(--info-soft); }
+.debt-foot { flex-wrap: wrap; }
+.client-installment .payment-actions, .installments .payment-actions { grid-column: 1 / -1; margin-top: 8px; }
+.sub-row { flex-wrap: wrap; }
+@media(min-width:760px) { .client-installment .payment-actions, .installments .payment-actions { min-width: 130px; } }
+/* As duas ações de cobrança permanecem lado a lado. */
+.payment-actions { flex-wrap: nowrap; }
+.installments > div > .payment-actions { grid-column: 1 / -1 !important; justify-content: flex-end; }
+.client-installment > .payment-actions { grid-column: 1 / -1 !important; justify-content: flex-end; }
+.pdf-actions > button { white-space: normal; min-height: 64px; }

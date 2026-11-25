@@ -21,6 +21,8 @@ const operacoes: NavItem[] = [
 const navClass = ({ isActive }: { isActive: boolean }) => isActive ? 'nav-active' : '';
 
 export function AppLayout() {
+  const [versaoCobrancas, setVersaoCobrancas] = useState(0);
+  useEffect(() => { const atualizar = () => setVersaoCobrancas(n => n + 1); window.addEventListener('cobrancas:atualizadas', atualizar); return () => window.removeEventListener('cobrancas:atualizadas', atualizar); }, []);
   const { logout } = useAuth();
   const { pathname } = useLocation();
   const [maisAberto, setMaisAberto] = useState(false);
@@ -52,7 +54,7 @@ export function AppLayout() {
       <button type="button" className="icon-button" onClick={logout} aria-label="Sair"><Icon name="logout" size={20}/></button>
     </header>
 
-    <main className="content"><div className="content-inner"><Outlet/></div></main>
+    <main className="content"><div className="content-inner"><Outlet key={versaoCobrancas}/></div></main>
 
     <nav className="bottom-nav" aria-label="Navegação principal">
       {principais.slice(0, 2).map(item => <NavLink key={item.to} to={item.to} className={navClass}><Icon name={item.icon} size={22}/><span>{item.short || item.label}</span></NavLink>)}

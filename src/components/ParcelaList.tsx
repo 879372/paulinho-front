@@ -1,3 +1,4 @@
+import { AdiarCobrancaButton } from './AdiarCobrancaButton';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BaixaModal } from './BaixaModal';
@@ -18,13 +19,13 @@ export function ParcelaList({ items, loading, next, onLoadMore, onBaixa, onDesfa
     <div className="debt-list">
       {items.map(item => <article className="debt-row" key={item.id}>
         <div className="client-avatar">{iniciais(item.cliente_nome)}</div>
-        <div className="client-info"><Link to={`/contratos/${item.contrato}`}>{item.cliente_nome || `Contrato #${item.contrato}`}</Link><span>{item.contrato_descricao} · {item.numero ? `Parcela ${item.numero}` : 'Juros'}</span></div>
+        <div className="client-info"><Link to={`/contratos/${item.contrato}`}>{item.cliente_nome || `Contrato #${item.contrato}`}</Link><span>{item.contrato_descricao} · {item.numero ? `Parcela ${item.numero}` : item.tipo === 'juros_mensal' ? 'Juros' : 'Saldo prorrogado'}</span></div>
         <div className="amount"><b>{moeda(item.valor)}</b><span className={`status ${item.status}`}>{statusLabel(item.status)}</span></div>
         <div className="debt-foot">
           <span className={`due${item.status === 'atrasada' ? ' late' : ''}`}><Icon name="clock" size={16}/>{item.status === 'paga' ? 'Venceu' : 'Vence'} {dataCurta(item.data_vencimento)}</span>
-          {item.status !== 'paga'
-            ? <button type="button" className="pay is-primary" onClick={() => setParcelaSelecionada(item)}><Icon name="check" size={16}/>Dar baixa</button>
-            : onDesfazerBaixa && item.tipo !== 'quitacao_principal' ? <button type="button" className="pay undo-payment" onClick={() => setParcelaParaDesfazer(item)}>Desfazer baixa</button> : null}
+          {['pendente', 'atrasada'].includes(item.status)
+            ? <div className="payment-actions"><button type="button" className="pay is-primary" onClick={() => setParcelaSelecionada(item)}><Icon name="check" size={16}/>Dar baixa</button>{item.tipo !== 'quitacao_principal' && <AdiarCobrancaButton id={item.id}/>}</div>
+            : item.status === 'paga' && onDesfazerBaixa && item.tipo !== 'quitacao_principal' ? <button type="button" className="pay undo-payment" onClick={() => setParcelaParaDesfazer(item)}>Desfazer baixa</button> : null}
         </div>
       </article>)}
       {!compact && <div ref={sentinel} className="load-more">{loading ? <span className="spinner"/> : next ? 'Role para carregar mais' : items.length ? 'Fim da lista' : ''}</div>}

@@ -35,7 +35,7 @@ export function BaixaModal({ parcela, onClose, onConfirm }: { parcela: Parcela |
       <dl className="baixa-summary">
         <div><dt>Cliente</dt><dd>{parcela.cliente_nome}</dd></div>
         {parcela.produto && <div className="baixa-product"><dt>Produto</dt><dd>{parcela.produto}</dd></div>}
-        <div><dt>Parcela / prazo</dt><dd>{parcela.numero ? `Parcela ${parcela.numero}` : 'Juros mensal'}</dd></div>
+        <div><dt>Parcela / prazo</dt><dd>{parcela.numero ? `Parcela ${parcela.numero}` : parcela.tipo === 'juros_mensal' ? 'Juros mensal' : 'Saldo prorrogado'}</dd></div>
         <div><dt>Vencimento</dt><dd>{dataBR(parcela.data_vencimento)}</dd></div>
         <div><dt>Valor da parcela</dt><dd className="baixa-value">{moeda(parcela.valor)}</dd></div>
       </dl>

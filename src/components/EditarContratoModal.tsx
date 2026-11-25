@@ -8,7 +8,7 @@ type Props = { contrato: Contrato; open: boolean; onClose: () => void; onConfirm
 
 export function EditarContratoModal({ contrato, open, onClose, onConfirm }: Props) {
   const somenteJuros = contrato.tipo === 'emprestimo_somente_juros';
-  const primeiraAberta = contrato.parcelas.find(parcela => parcela.status !== 'paga');
+  const primeiraAberta = contrato.parcelas.find(parcela => ['pendente', 'atrasada'].includes(parcela.status));
   const [produto, setProduto] = useState('');
   const [valorEntrada, setValorEntrada] = useState('');
   const [valor, setValor] = useState('');

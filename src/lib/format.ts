@@ -25,7 +25,7 @@ export function campoBRLParaDecimal(value: string) {
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  pendente: 'Pendente', paga: 'Paga', atrasada: 'Em atraso',
+  transferida: 'Transferida', pendente: 'Pendente', paga: 'Paga', atrasada: 'Em atraso',
   ativo: 'Ativo', atrasado: 'Atrasado', quitado: 'Quitado', renegociado: 'Renegociado', cancelado: 'Cancelado',
 };
 export const statusLabel = (status: string) => STATUS_LABEL[status] || status;

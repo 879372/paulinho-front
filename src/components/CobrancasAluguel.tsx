@@ -1,10 +1,11 @@
+import { AdiarCobrancaButton } from './AdiarCobrancaButton';
 import { useEffect, useState } from 'react';
 import { apiRequest, type PageResponse } from '../lib/api';
 import { dataBR, iniciais, moeda, statusLabel } from '../lib/format';
 import { Alert } from './Alert';
 import { Icon } from './Icon';
 
-type Cobranca = { id: number; aluguel: number; cliente_nome: string; placa: string; vencimento: string; valor: string; pago_em: string | null; status: 'paga' | 'pendente' | 'atrasada' };
+type Cobranca = { id: number; aluguel: number; cliente_nome: string; placa: string; vencimento: string; valor: string; pago_em: string | null; transferida_para?: number | null; status: 'paga' | 'pendente' | 'atrasada' | 'transferida' };
 const hoje = () => new Date().toLocaleDateString('en-CA');
 
 export function CobrancasAluguel({ busca, statuses }: { busca: string; statuses: string[] }) {
@@ -58,7 +59,7 @@ export function CobrancasAluguel({ busca, statuses }: { busca: string; statuses:
       <div className="client-avatar">{iniciais(item.cliente_nome)}</div>
       <div className="client-info"><b>{item.cliente_nome}</b><span>Aluguel · {item.placa}</span></div>
       <div className="amount"><b>{moeda(item.valor)}</b><span className={`status ${item.status}`}>{statusLabel(item.status)}</span></div>
-      <div className="debt-foot"><span className={`due${item.status === 'atrasada' ? ' late' : ''}`}><Icon name="clock" size={16}/>{dataBR(item.vencimento)}</span>{item.pago_em ? <span className="due">Pago em {dataBR(item.pago_em)}</span> : <button type="button" className="pay is-primary" onClick={() => { setData(hoje()); setErro(''); setSelecionada(item); }}><Icon name="check" size={16}/>Receber</button>}</div>
+      <div className="debt-foot"><span className={`due${item.status === 'atrasada' ? ' late' : ''}`}><Icon name="clock" size={16}/>{dataBR(item.vencimento)}</span>{item.pago_em ? <span className="due">Pago em {dataBR(item.pago_em)}</span> : item.transferida_para ? <span className="status transferida">Transferida</span> : <div className="payment-actions"><button type="button" className="pay is-primary" onClick={() => { setData(hoje()); setErro(''); setSelecionada(item); }}><Icon name="check" size={16}/>Receber</button><AdiarCobrancaButton id={item.id} aluguel/></div>}</div>
     </article>)}
     {!carregando && pagina?.count === 0 && <div className="empty"><span><Icon name="check"/></span><h3>Nenhuma cobrança de aluguel</h3><p>Nenhum aluguel encontrado para esses filtros.</p></div>}
     <div className="load-more">{carregando ? <span className="spinner"/> : pagina?.next ? <button type="button" className="secondary" onClick={() => void mais()}>Carregar mais aluguéis</button> : null}</div>

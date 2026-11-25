@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Icon } from './Icon';
 
+import type { ReactNode } from 'react';
+
 type ConfirmActionModalProps = {
   open: boolean;
   title: string;
-  description: string;
+  description: ReactNode;
   confirmLabel: string;
   tone?: 'default' | 'danger';
   onClose: () => void;
