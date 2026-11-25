@@ -816,3 +816,41 @@ a.metric:hover { border-color: var(--border-strong); }
 .step-spacer { flex: 1; }
 .step-header + .page-title { margin-top: 12px; }
 .contract-inline { margin-top: 10px; }
+
+/* Assinatura eletrônica */
+.assinatura { padding: 16px; display: grid; gap: 12px; }
+.assinatura.compacta { padding: 12px 0 0; }
+.assinatura-topo { display: flex; align-items: center; gap: 12px; }
+.assinatura-texto { flex: 1; min-width: 0; }
+.assinatura-texto b { display: block; font-size: 15px; }
+.assinatura-texto span { display: block; font-size: 13px; color: var(--text-2); }
+.assinatura.compacta .tile-icon { width: 36px; height: 36px; }
+.assinatura-aviso { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--warning-soft); color: var(--text-2); font-size: 13px; }
+.assinatura-partes { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.assinatura-partes li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.assinatura-partes em { margin-left: auto; font-style: normal; font-size: 12px; color: var(--text-3); }
+.assinatura-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.assinatura-acoes > * { flex: 1 1 auto; }
+.assinatura .alert { margin: 0; }
+@media (min-width: 640px) { .assinatura-acoes > * { flex: none; } }
+.metric-grid > .metric:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 1024px) { .metric-grid > .metric:last-child:nth-child(odd) { grid-column: auto; } }
+
+/* Caixa e categorias financeiras */
+.finance-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.finance-summary .metric { padding: 12px; }
+.finance-summary .metric span { font-size: 12px; }
+.finance-summary .metric strong { font-size: clamp(12px, 12cqi, 26px); }
+.finance-categories { display: grid; gap: 12px; margin-bottom: 20px; }
+.finance-category { min-width: 0; padding: 16px; text-align: left; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.finance-category.selected { border-color: var(--primary); background: var(--primary-soft); }
+.finance-category-title { display: flex; align-items: center; gap: 10px; }
+.finance-category dl { margin: 14px 0 0; }
+.finance-category dl > div { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; }
+.finance-category dl > div:last-child { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 10px; font-weight: 800; }
+.finance-category dt { color: var(--text-2); font-size: 13px; }
+.finance-category dd { margin: 0; font-weight: 700; }
+.finance-category .in { color: var(--success); }
+.finance-category .out { color: var(--danger); }
+@media(min-width:640px) { .finance-categories { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media(min-width:1280px) { .finance-categories { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

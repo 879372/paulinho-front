@@ -110,6 +110,17 @@ export async function apiGerarPdf(path: string, dados: Record<string, unknown>, 
   return response.blob();
 }
 
+export function baixarPdf(arquivo: Blob, nome: string) {
+  const url = URL.createObjectURL(arquivo);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = nome;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}
+
 export async function compartilharOuBaixarPdf(arquivo: Blob, nome: string) {
   const pdf = new File([arquivo], nome, { type: 'application/pdf' });
   if (navigator.share && navigator.canShare?.({ files: [pdf] })) {
