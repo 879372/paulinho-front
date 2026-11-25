@@ -123,7 +123,7 @@ export function baixarPdf(arquivo: Blob, nome: string) {
 
 export async function compartilharOuBaixarPdf(arquivo: Blob, nome: string) {
   const pdf = new File([arquivo], nome, { type: 'application/pdf' });
-  if (navigator.share && navigator.canShare?.({ files: [pdf] })) {
+  if (window.matchMedia('(max-width: 1023px)').matches && navigator.share && navigator.canShare?.({ files: [pdf] })) {
     try {
       await navigator.share({ files: [pdf] });
       return;

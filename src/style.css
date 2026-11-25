@@ -854,3 +854,9 @@ a.metric:hover { border-color: var(--border-strong); }
 .finance-category .out { color: var(--danger); }
 @media(min-width:640px) { .finance-categories { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media(min-width:1280px) { .finance-categories { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+.pdf-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 20px; }
+.pdf-actions > button { flex: 1 1 180px; }
+.pdf-action-desktop { display: none; }
+.pdf-action-mobile { display: inline; }
+@media(min-width:1024px) { .pdf-action-desktop { display: inline; } .pdf-action-mobile { display: none; } .pdf-actions > button { flex: none; } }

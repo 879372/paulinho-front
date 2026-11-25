@@ -1,12 +1,13 @@
 import { Fragment, useCallback, useEffect, useState, type FormEvent } from 'react';
 import { PageHeader } from '../components/PageHeader';
 import { Alert } from '../components/Alert';
-import { apiDownload, apiRequest, baixarPdf, type PageResponse } from '../lib/api';
+import { apiDownload, apiRequest, compartilharOuBaixarPdf, type PageResponse } from '../lib/api';
 import { iniciais, moeda } from '../lib/format';
 import type { AssinaturaInfo } from '../types';
 import { Icon, type IconName } from '../components/Icon';
 import { LoadingState } from '../components/LoadingState';
 import { AssinaturaPanel } from '../components/AssinaturaPanel';
+import { PdfLabel } from '../components/PdfLabel';
 import { ClienteModal } from '../components/ClienteModal';
 
 type Registro = { id: number; [key: string]: unknown };
@@ -113,7 +114,7 @@ export function OperacoesPage({ modulo }: { modulo: 'motos' | 'animais' | 'finan
 
   async function contratoAluguel(item: Registro) {
     setErro('');
-    try { baixarPdf(await apiDownload(`/operacoes/alugueis/${item.id}/contrato/`), `contrato-locacao-${String(item.placa)}-${item.id}.pdf`); }
+    try { await compartilharOuBaixarPdf(await apiDownload(`/operacoes/alugueis/${item.id}/contrato/`), `contrato-locacao-${String(item.placa)}-${item.id}.pdf`); }
     catch (error) { setErro(erroTexto(error)); }
   }
 
@@ -159,7 +160,7 @@ export function OperacoesPage({ modulo }: { modulo: 'motos' | 'animais' | 'finan
       {modulo === 'motos' && <>
         <Lista titulo="Frota" itens={recursos.motos} vazio="Nenhuma moto cadastrada." render={item => <div className="list-row"><span className="client-avatar"><Icon name="bike"/></span><div className="list-main"><b>{String(item.placa)}</b><span>{String(item.modelo)}</span></div><span className={`status ${item.disponibilidade === 'manutencao' ? 'atrasada' : item.disponibilidade === 'alugada' ? 'pendente' : 'paga'}`}>{item.disponibilidade === 'manutencao' ? 'Manutenção' : item.disponibilidade === 'alugada' ? 'Alugada' : 'Disponível'}</span></div>}/>
         <Lista titulo="Contratos de aluguel" itens={recursos.alugueis} vazio="Nenhum aluguel registrado." render={item => <div className="list-row"><span className="client-avatar">{iniciais(String(item.cliente_nome))}</span><div className="list-main"><b>{String(item.cliente_nome)} · {String(item.placa)}</b><span>{dataBR(item.inicio)} até {dataBR(item.fim)} · {dinheiro(item.valor)} / {String(item.periodicidade)}</span>
-          <button type="button" className="contract-pdf-button contract-inline" onClick={() => void contratoAluguel(item)}><Icon name="file" size={16}/>Baixar contrato PDF</button>
+          <button type="button" className="contract-pdf-button contract-inline" onClick={() => void contratoAluguel(item)}><Icon name="file" size={16}/><PdfLabel documento="contrato PDF"/></button>
           <AssinaturaPanel compacto base={`/operacoes/alugueis/${item.id}`} inicial={item as AssinaturaInfo} nomeArquivo={`contrato-locacao-${String(item.placa)}-${item.id}-assinado.pdf`}/>
           <div className="sub-list">{(item.cobrancas as Registro[]).map(cobranca => { const pago = Boolean(cobranca.pago_em); const atrasado = !pago && String(cobranca.vencimento) < hoje(); return <div className="sub-row" key={cobranca.id}><span><b>{dinheiro(cobranca.valor)}</b>{pago ? `Pago em ${dataBR(cobranca.pago_em)}` : `Vence ${dataBR(cobranca.vencimento)}`}</span>{pago ? <span className="status paga">Pago</span> : <button type="button" className={`pay is-primary${atrasado ? ' late' : ''}`} disabled={salvando} onClick={() => receber(cobranca.id)}><Icon name="check" size={16}/>Receber</button>}</div>; })}</div>
         </div></div>}/>

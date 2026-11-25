@@ -3,6 +3,7 @@ import { apiDownload, apiRequest, compartilharOuBaixarPdf } from '../lib/api';
 import type { AssinaturaInfo } from '../types';
 import { Alert } from './Alert';
 import { ConfirmActionModal } from './ConfirmActionModal';
+import { PdfLabel } from './PdfLabel';
 import { Icon } from './Icon';
 
 type Estado = AssinaturaInfo & { configurado?: boolean; signatarios?: { nome: string; assinou: boolean; recusou: boolean }[] };
@@ -48,7 +49,7 @@ export function AssinaturaPanel({ base, inicial, nomeArquivo, compacto = false }
       {status === 'pendente' && estado.assinatura_link_empresa && <a className="primary" href={estado.assinatura_link_empresa} target="_blank" rel="noreferrer"><Icon name="edit" size={18}/>Assinar como empresa</a>}
       {(status === 'pendente' || status === 'recusado') && <button type="button" className="secondary" disabled={ocupado} onClick={atualizar}><Icon name="refresh" size={18}/>{ocupado ? 'Consultando...' : 'Atualizar status'}</button>}
       {(status === 'pendente' || status === 'recusado') && <button type="button" className="ghost" disabled={ocupado} onClick={() => setConfirmar('reenviar')}>Reenviar</button>}
-      {status === 'assinado' && <button type="button" className="primary" disabled={ocupado} onClick={baixar}><Icon name="file" size={18}/>{ocupado ? 'Baixando...' : 'PDF assinado'}</button>}
+      {status === 'assinado' && <button type="button" className="primary" disabled={ocupado} onClick={baixar}><Icon name="file" size={18}/>{ocupado ? 'Baixando...' : <PdfLabel documento="PDF assinado"/>}</button>}
     </div>
     <ConfirmActionModal open={Boolean(confirmar)} title={confirmar === 'reenviar' ? 'Reenviar para assinatura?' : 'Enviar para assinatura?'}
       description={`O cliente receberá o link pelo WhatsApp cadastrado.${confirmar === 'reenviar' ? ' Um novo documento será criado e consumirá um envio da sua cota.' : ' Cada envio consome um documento da cota da Autentique.'}`}
