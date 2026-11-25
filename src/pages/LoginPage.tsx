@@ -1,0 +1,13 @@
+import { FormEvent, useState } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
+import { Alert } from '../components/Alert';
+import { Brand } from '../components/Brand';
+import { Icon } from '../components/Icon';
+
+export function LoginPage() {
+  const { authenticated, login } = useAuth(); const navigate = useNavigate(); const location = useLocation(); const [username, setUsername] = useState(''); const [password, setPassword] = useState(''); const [showPassword, setShowPassword] = useState(false); const [error, setError] = useState(''); const [loading, setLoading] = useState(false);
+  if (authenticated) return <Navigate to="/dashboard" replace/>;
+  async function submit(event: FormEvent) { event.preventDefault(); setLoading(true); setError(''); try { await login(username, password); const destination = (location.state as { from?: string } | null)?.from || '/dashboard'; navigate(destination, { replace: true }); } catch (e) { setError((e as Error).message); } finally { setLoading(false); } }
+  return <div className="login-page"><div className="login-brand"><Brand/><div className="login-copy"><span className="eyebrow">Controle que dá tranquilidade</span><h1>Seu financeiro,<br/><em>sempre em dia.</em></h1><p>Empréstimos, aluguel de motos e criação de animais em um só lugar.</p></div><small className="copyright">© 2026 Gestão de Operações</small></div><div className="login-area"><form className="login-card" onSubmit={submit}><span className="eyebrow">Bem-vindo de volta</span><h2>Acesse sua conta</h2><p>Use suas credenciais para continuar.</p>{error && <Alert message={error}/>}<label><span>Usuário</span><input autoFocus autoComplete="username" value={username} onChange={e => setUsername(e.target.value)} placeholder="Digite seu usuário" required/></label><div className="login-password-field"><label htmlFor="login-password"><span>Senha</span></label><div className="login-password-input"><input id="login-password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Digite sua senha" required/><button type="button" className="login-password-toggle" aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} aria-controls="login-password" aria-pressed={showPassword} onClick={() => setShowPassword(visible => !visible)}><Icon name={showPassword ? 'eyeOff' : 'eye'}/></button></div></div><button className="primary login-button" disabled={loading}>{loading ? 'Entrando...' : 'Entrar'}{!loading && <Icon name="arrowRight" size={18}/>}</button><small className="secure"><Icon name="checkCircle" size={14}/>Ambiente seguro e protegido</small></form></div></div>;
+}
