@@ -880,3 +880,6 @@ a.metric:hover { border-color: var(--border-strong); }
 .cobranca-dropdown { position: fixed; z-index: 80; width: 238px; padding: 6px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); box-shadow: var(--shadow-lg); }
 .cobranca-dropdown button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--text); font-size: 14px; text-align: left; font-weight: 600; }
 .cobranca-dropdown button:hover, .cobranca-dropdown button:focus-visible { background: var(--primary-soft); color: var(--primary-ink); }
+
+.caucao-resumo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0 0; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); font-size: 13px; }
+.caucao-resumo b { display: inline; font-size: 13px; margin-right: 6px; }
