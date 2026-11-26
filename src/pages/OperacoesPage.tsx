@@ -10,6 +10,7 @@ import { Icon, type IconName } from '../components/Icon';
 import { LoadingState } from '../components/LoadingState';
 import { AssinaturaPanel } from '../components/AssinaturaPanel';
 import { PdfLabel } from '../components/PdfLabel';
+import { ConfirmActionModal } from '../components/ConfirmActionModal';
 import { ClienteModal } from '../components/ClienteModal';
 
 type Registro = { id: number; [key: string]: unknown };
@@ -42,6 +43,9 @@ export function OperacoesPage({ modulo }: { modulo: 'motos' | 'animais' | 'finan
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
   const [acao, setAcao] = useState('');
+  const [editandoMovimento, setEditandoMovimento] = useState<Registro | null>(null);
+  const [apagando, setApagando] = useState<Registro | null>(null);
+  const [erroExclusao, setErroExclusao] = useState('');
   const [editandoLote, setEditandoLote] = useState<Registro | null>(null);
   const [clienteModal, setClienteModal] = useState(false);
   const [clienteSelecionado, setClienteSelecionado] = useState('');
@@ -86,7 +90,14 @@ export function OperacoesPage({ modulo }: { modulo: 'motos' | 'animais' | 'finan
   ] : [
     ...['Cadastrar receita', 'Cadastrar despesa'].map(titulo => ({ titulo, recurso: 'movimentos', campos: [descricao, { nome: 'categoria', titulo: 'Categoria', tipo: 'select', opcoes: [['emprestimos', 'Empréstimos'], ['motos', 'Aluguel de motos'], ['animais', 'Criação de animais'], ['outros', 'Outros']] } as Campo, valor, data] })),
   ];
-  const selecionada = acao === 'Editar animal ou lote' && editandoLote ? { ...acoes[0], campos: [...acoes[0].campos, { nome: 'encerrado', titulo: 'Situação', tipo: 'select', opcoes: [['false', 'Em criação'], ['true', 'Encerrado']] } as Campo] } : acoes.find(item => item.titulo === acao);
+  const camposMovimento: Campo[] = [descricao, valor, data];
+  if (editandoMovimento && editandoMovimento.categoria !== 'compra_animais') {
+    const categorias: [string, string][] = editandoMovimento.tipo === 'entrada' ? [['venda_animais', 'Venda de animais'], ['outros', 'Outros']] : [['alimentacao', 'Alimentação'], ['medicamentos', 'Medicamentos'], ['veterinario', 'Veterinário'], ['manejo', 'Manejo'], ['outros', 'Outros']];
+    if (modulo === 'financeiro') categorias.push(['emprestimos', 'Empréstimos'], ['motos', 'Aluguel de motos'], ['animais', 'Criação de animais'], ['manutencao', 'Manutenção'], ['multa', 'Multa']);
+    if (!categorias.some(([key]) => key === editandoMovimento.categoria)) categorias.push([String(editandoMovimento.categoria), String(editandoMovimento.categoria)]);
+    camposMovimento.push({ nome: 'categoria', titulo: 'Categoria', tipo: 'select', opcoes: categorias });
+  }
+  const selecionada = editandoMovimento && acao.startsWith('Editar lançamento') ? { titulo: acao, recurso: 'movimentos', campos: camposMovimento } : acao === 'Editar animal ou lote' && editandoLote ? { ...acoes[0], campos: [...acoes[0].campos, { nome: 'encerrado', titulo: 'Situação', tipo: 'select', opcoes: [['false', 'Em criação'], ['true', 'Encerrado']] } as Campo] } : acoes.find(item => item.titulo === acao);
 
   async function salvar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -95,14 +106,14 @@ export function OperacoesPage({ modulo }: { modulo: 'motos' | 'animais' | 'finan
     const payload: Record<string, unknown> = Object.fromEntries(new FormData(form));
     if (payload.encerrado !== undefined) payload.encerrado = payload.encerrado === 'true';
     if (payload.em_manutencao) payload.em_manutencao = payload.em_manutencao === 'true';
-    if (selecionada.recurso === 'movimentos') {
+    if (selecionada.recurso === 'movimentos' && !editandoMovimento) {
       payload.tipo ||= ['Receita da criação', 'Cadastrar receita'].includes(acao) ? 'entrada' : 'saida';
       payload.categoria ||= 'outros';
     }
     setSalvando(true); setErro(''); setSucesso('');
     try {
-      await apiRequest(`/operacoes/${selecionada.recurso}/${editandoLote ? editandoLote.id + '/' : ''}`, { method: editandoLote ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
-      setAcao(''); setEditandoLote(null); setSucesso('Cadastro salvo.'); reload();
+      await apiRequest(`/operacoes/${selecionada.recurso}/${editandoMovimento ? editandoMovimento.id + '/' : editandoLote ? editandoLote.id + '/' : ''}`, { method: editandoLote || editandoMovimento ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
+      setAcao(''); setEditandoMovimento(null); setEditandoLote(null); setSucesso('Cadastro salvo.'); reload();
     } catch (error) { setErro(erroTexto(error)); }
     finally { setSalvando(false); }
   }
@@ -122,6 +133,23 @@ export function OperacoesPage({ modulo }: { modulo: 'motos' | 'animais' | 'finan
     catch (error) { setErro(erroTexto(error)); }
   }
 
+  async function apagarMovimento() {
+    if (!apagando) return;
+    setErroExclusao('');
+    try {
+      await apiRequest(`/operacoes/movimentos/${apagando.id}/`, { method: 'DELETE' });
+      setSucesso('Lançamento apagado. Financeiro atualizado.'); reload();
+    } catch (error) { setErroExclusao(erroTexto(error)); throw error; }
+  }
+  function origemMovimento(item: Registro) {
+    const id = modulo === 'financeiro' ? String(item.id).startsWith('movimento-') ? Number(String(item.id).slice(10)) : null : item.id;
+    return (recursos.movimentos || []).find(registro => registro.id === id);
+  }
+  function acoesMovimento(item: Registro) {
+    const registro = origemMovimento(item);
+    if (!registro?.editavel || !['animais', 'financeiro'].includes(modulo)) return null;
+    return <div className="payment-actions"><button type="button" className="secondary" aria-label={`Editar ${String(item.descricao)}`} onClick={() => { setEditandoLote(null); setEditandoMovimento(registro); setAcao('Editar lançamento'); setErro(''); setSucesso(''); }}><Icon name="edit" size={16}/>Editar</button><button type="button" className="danger-button" aria-label={`Apagar ${String(item.descricao)}`} onClick={() => { setApagando(registro); setErroExclusao(''); }}><Icon name="x" size={16}/>Apagar</button></div>;
+  }
   const movimentos = modulo === 'financeiro' ? (resultado?.lancamentos || []).filter(item => !categoriaFiltro || item.categoria === categoriaFiltro) : (recursos.movimentos || []).filter(item => modulo === 'motos' ? item.moto : modulo === 'animais' ? item.lote : String(item.data) >= inicio && String(item.data) <= fim);
   const iconeAcao = (titulo: string): IconName => (titulo.startsWith('Despesa') || titulo === 'Cadastrar despesa') ? 'trendDown' : (titulo.startsWith('Receita') || titulo === 'Cadastrar receita') ? 'trendUp' : titulo === 'Novo aluguel' ? 'calendar' : titulo === 'Lançamento geral' ? 'wallet' : 'plus';
   return <>
@@ -129,19 +157,21 @@ export function OperacoesPage({ modulo }: { modulo: 'motos' | 'animais' | 'finan
       action={<button type="button" className="secondary" onClick={reload} disabled={carregando || salvando}><Icon name="refresh" size={18}/>Atualizar</button>}/>
     {erro && <Alert message={erro} onClose={() => setErro('')}/>}
     {sucesso && <Alert tone="success" message={sucesso} onClose={() => setSucesso('')}/>}
-    <div className="action-grid">{acoes.map(item => <button type="button" className="action-tile" key={item.titulo} disabled={carregando || salvando} onClick={() => { setEditandoLote(null); setErro(''); setAcao(item.titulo); setClienteSelecionado(''); setSucesso(''); }}><span className="tile-icon"><Icon name={iconeAcao(item.titulo)}/></span><b>{item.titulo}</b></button>)}</div>
+    <div className="action-grid">{acoes.map(item => <button type="button" className="action-tile" key={item.titulo} disabled={carregando || salvando} onClick={() => { setEditandoLote(null); setEditandoMovimento(null); setErro(''); setAcao(item.titulo); setClienteSelecionado(''); setSucesso(''); }}><span className="tile-icon"><Icon name={iconeAcao(item.titulo)}/></span><b>{item.titulo}</b></button>)}</div>
 
     <Sheet open={Boolean(selecionada)} suspended={clienteModal} title={acao} onClose={() => !salvando && setAcao('')}>
-      {selecionada && <form onSubmit={salvar} key={`${acao}-${editandoLote?.id || ''}`}>
+      {selecionada && <form onSubmit={salvar} key={`${acao}-${editandoMovimento?.id || editandoLote?.id || ''}`}>
         {erro && <Alert message={erro}/>}
-        <div className="field-grid">{selecionada.campos.map(campo => <label key={campo.nome} className={campo.nome === 'observacoes' || campo.nome === 'descricao' ? 'full-span' : undefined}><span>{campo.titulo}{campo.opcional ? ' (opcional)' : ''}</span>{campo.tipo === 'select' ? <select name={campo.nome} required={!campo.opcional} {...(campo.nome === 'cliente' ? { value: clienteSelecionado, onChange: (event: React.ChangeEvent<HTMLSelectElement>) => setClienteSelecionado(event.target.value) } : { defaultValue: editandoLote ? String(editandoLote[campo.nome] ?? '') : '' })}><option value="">Selecione</option>{campo.opcoes?.map(([id, nome]) => <option key={id} value={id}>{nome}</option>)}</select> : <input name={campo.nome} type={campo.tipo || 'text'} inputMode={campo.tipo === 'number' ? 'decimal' : undefined} defaultValue={editandoLote ? String(editandoLote[campo.nome] ?? '') : campo.valor || ''} required={!campo.opcional} min={campo.min} step={campo.nome === 'quantidade' ? '1' : campo.tipo === 'number' ? '0.01' : undefined} max={['data', 'data_aquisicao'].includes(campo.nome) ? hoje() : undefined}/>}{campo.nome === 'valor_caucao' && <small>Use 0 se não houver caução. Não registra recebimento no caixa.</small>}{campo.nome === 'cliente' && <button type="button" className="inline-create" onClick={() => setClienteModal(true)}>Cliente não cadastrado? <b>Cadastrar agora</b></button>}</label>)}</div>
+        <div className="field-grid">{selecionada.campos.map(campo => <label key={campo.nome} className={campo.nome === 'observacoes' || campo.nome === 'descricao' ? 'full-span' : undefined}><span>{campo.titulo}{campo.opcional ? ' (opcional)' : ''}</span>{campo.tipo === 'select' ? <select name={campo.nome} required={!campo.opcional} {...(campo.nome === 'cliente' ? { value: clienteSelecionado, onChange: (event: React.ChangeEvent<HTMLSelectElement>) => setClienteSelecionado(event.target.value) } : { defaultValue: editandoMovimento ? String(editandoMovimento[campo.nome] ?? '') : editandoLote ? String(editandoLote[campo.nome] ?? '') : '' })}><option value="">Selecione</option>{campo.opcoes?.map(([id, nome]) => <option key={id} value={id}>{nome}</option>)}</select> : <input name={campo.nome} type={campo.tipo || 'text'} inputMode={campo.tipo === 'number' ? 'decimal' : undefined} defaultValue={editandoMovimento ? String(editandoMovimento[campo.nome] ?? '') : editandoLote ? String(editandoLote[campo.nome] ?? '') : campo.valor || ''} required={!campo.opcional} min={campo.min} step={campo.nome === 'quantidade' ? '1' : campo.tipo === 'number' ? '0.01' : undefined} max={['data', 'data_aquisicao'].includes(campo.nome) ? hoje() : undefined}/>}{campo.nome === 'valor_caucao' && <small>Use 0 se não houver caução. Não registra recebimento no caixa.</small>}{campo.nome === 'cliente' && <button type="button" className="inline-create" onClick={() => setClienteModal(true)}>Cliente não cadastrado? <b>Cadastrar agora</b></button>}</label>)}</div>
         {modulo === 'financeiro' && <p className="note"><Icon name="alert" size={18}/>Registre apenas valores ainda não lançados. Recebimentos de contratos e aluguéis já entram automaticamente.</p>}
         {acao === 'Cadastrar animal ou lote' && <p className="note"><Icon name="alert" size={18}/>O valor da compra será lançado automaticamente como despesa do lote.</p>}
+        {editandoMovimento?.categoria === 'compra_animais' && <p className="note">A alteração do valor ou da data também atualizará a compra no cadastro do animal ou lote.</p>}
         {editandoLote && <p className="note"><Icon name="alert" size={18}/>Alterar o valor ou a data da compra atualiza a despesa já registrada no Financeiro.</p>}
         {acao === 'Novo aluguel' && <p className="note"><Icon name="alert" size={18}/>O valor é cobrado por período, sem rateio. As cobranças são geradas até o término do contrato.</p>}
         <div className="modal-actions"><button type="button" className="ghost" disabled={salvando} onClick={() => setAcao('')}>Cancelar</button><button className="primary" disabled={salvando}>{salvando ? 'Salvando…' : 'Salvar'}</button></div>
       </form>}
     </Sheet>
+    <ConfirmActionModal open={Boolean(apagando)} title="Apagar lançamento?" tone="danger" confirmLabel="Sim, apagar" onClose={() => setApagando(null)} onConfirm={apagarMovimento} description={<>{String(apagando?.descricao || '')} · {dinheiro(apagando?.valor)}. O valor será removido do Financeiro{apagando?.lote ? ' e do resultado do lote' : ''}.{apagando?.categoria === 'compra_animais' && ' O valor da compra no cadastro do lote ficará zerado.'}{erroExclusao && <span className="action-error" role="alert"> {erroExclusao}</span>}</>}/>
     <ClienteModal open={clienteModal} onClose={() => setClienteModal(false)} onSaved={cliente => {
       setRecursos(atual => ({ ...atual, clientes: [{ ...cliente }, ...(atual.clientes || []).filter(item => item.id !== cliente.id)] }));
       setClienteSelecionado(String(cliente.id));
@@ -173,13 +203,13 @@ export function OperacoesPage({ modulo }: { modulo: 'motos' | 'animais' | 'finan
         </div></div>}/>
       </>}
       {modulo === 'animais' && <>
-        <Lista titulo="Animais e lotes" itens={recursos.animais} vazio="Nenhum lote cadastrado." render={item => <div className="list-row"><span className="client-avatar"><Icon name="paw"/></span><div className="list-main"><b>{String(item.identificacao)}</b><span>{String(item.quantidade)} animais · {String(item.especie)}</span></div><div className="animal-lote-actions"><span className="list-trailing">{dinheiro(item.valor_compra)}</span><button type="button" className="secondary" aria-label={`Editar ${String(item.identificacao)}`} disabled={salvando} onClick={() => { setEditandoLote(item); setAcao('Editar animal ou lote'); setErro(''); setSucesso(''); }}><Icon name="edit" size={16}/>Editar</button></div></div>}/>
+        <Lista titulo="Animais e lotes" itens={recursos.animais} vazio="Nenhum lote cadastrado." render={item => <div className="list-row"><span className="client-avatar"><Icon name="paw"/></span><div className="list-main"><b>{String(item.identificacao)}</b><span>{String(item.quantidade)} animais · {String(item.especie)}</span></div><div className="animal-lote-actions"><span className="list-trailing">{dinheiro(item.valor_compra)}</span><button type="button" className="secondary" aria-label={`Editar ${String(item.identificacao)}`} disabled={salvando} onClick={() => { setEditandoMovimento(null); setEditandoLote(item); setAcao('Editar animal ou lote'); setErro(''); setSucesso(''); }}><Icon name="edit" size={16}/>Editar</button></div></div>}/>
         <section className="panel"><div className="panel-head"><div><span className="section-kicker">Resultado acumulado</span><h2>Por animal ou lote</h2></div></div>
           {resultado.lotes.length ? resultado.lotes.map(item => <div className="list-row" key={item.id}><div className="list-main"><b>{item.nome}</b><span>Receitas {dinheiro(item.receitas)} · Despesas {dinheiro(item.despesas)}</span></div><span className={`list-trailing ${Number(item.resultado) < 0 ? 'out' : 'in'}`}>{dinheiro(item.resultado)}</span></div>) : <p className="list-empty">Nenhum lote cadastrado.</p>}
           <p className="note"><Icon name="alert" size={18}/>Inclui a compra e as despesas registradas. O valor dos animais ainda em criação não é tratado como receita.</p>
         </section>
       </>}
-      <Lista titulo={modulo === 'financeiro' ? 'Lançamentos do período' : 'Receitas e despesas'} itens={movimentos} vazio="Nenhum lançamento por enquanto." render={item => <div className="list-row"><span className="client-avatar"><Icon name={item.tipo === 'entrada' ? 'arrowDown' : 'arrowUp'}/></span><div className="list-main"><b>{String(item.descricao)}</b><span>{dataBR(item.data)} · {String(item.referencia)}{modulo === 'financeiro' && item.categoria_nome ? ` · ${String(item.categoria_nome)}` : ''}</span></div><span className={`list-trailing ${item.tipo === 'entrada' ? 'in' : 'out'}`}>{item.tipo === 'entrada' ? '+' : '−'} {dinheiro(item.valor)}</span></div>}/>
+      <Lista titulo={modulo === 'financeiro' ? 'Lançamentos do período' : 'Receitas e despesas'} itens={movimentos} vazio="Nenhum lançamento por enquanto." render={item => <div className="list-row movement-row"><span className="client-avatar"><Icon name={item.tipo === 'entrada' ? 'arrowDown' : 'arrowUp'}/></span><div className="list-main"><b>{String(item.descricao)}</b><span>{dataBR(item.data)} · {String(item.referencia)}{modulo === 'financeiro' && item.categoria_nome ? ` · ${String(item.categoria_nome)}` : ''}</span></div><span className={`list-trailing ${item.tipo === 'entrada' ? 'in' : 'out'}`}>{item.tipo === 'entrada' ? '+' : '−'} {dinheiro(item.valor)}</span>{acoesMovimento(item)}</div>}/>
     </>}
   </>;
 }

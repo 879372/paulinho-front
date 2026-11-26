@@ -926,3 +926,7 @@ a.metric:hover { border-color: var(--border-strong); }
 .animal-lote-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
 .animal-lote-actions button { min-height: 40px; }
 @media(max-width: 639px) { .animal-lote-actions { flex-direction: column; align-items: flex-end; gap: 6px; } }
+
+.movement-row { flex-wrap: wrap; }
+.movement-row > .payment-actions { margin-left: auto; }
+@media(max-width:639px) { .movement-row > .payment-actions { flex-basis: 100%; justify-content: flex-end; } }
