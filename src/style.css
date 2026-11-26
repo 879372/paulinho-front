@@ -918,3 +918,7 @@ a.metric:hover { border-color: var(--border-strong); }
 .public-cadastro-success h1 { font-size: 26px; }
 .public-cadastro-success p { color: var(--text-2); line-height: 1.6; }
 @media(min-width:640px) { .public-cadastro-form { padding: 28px; } }
+
+.caucao-caixa { display: grid; gap: 10px; margin: 8px 0 14px; }
+.caucao-caixa small { color: var(--text-2); line-height: 1.5; }
+.caucao-caixa button { justify-self: start; white-space: normal; text-align: left; }
