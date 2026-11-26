@@ -922,3 +922,7 @@ a.metric:hover { border-color: var(--border-strong); }
 .caucao-caixa { display: grid; gap: 10px; margin: 8px 0 14px; }
 .caucao-caixa small { color: var(--text-2); line-height: 1.5; }
 .caucao-caixa button { justify-self: start; white-space: normal; text-align: left; }
+
+.animal-lote-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
+.animal-lote-actions button { min-height: 40px; }
+@media(max-width: 639px) { .animal-lote-actions { flex-direction: column; align-items: flex-end; gap: 6px; } }
