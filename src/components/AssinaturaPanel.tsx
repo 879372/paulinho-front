@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { apiDownload, apiRequest, compartilharOuBaixarPdf } from '../lib/api';
 import type { AssinaturaInfo } from '../types';
 import { Alert } from './Alert';
 import { ConfirmActionModal } from './ConfirmActionModal';
 import { PdfLabel } from './PdfLabel';
+import { CadastroLocatarioPanel, type CadastroEstado } from './CadastroLocatarioPanel';
 import { Icon } from './Icon';
 
 type Estado = AssinaturaInfo & { configurado?: boolean; signatarios?: { nome: string; assinou: boolean; recusou: boolean }[] };
@@ -19,6 +20,8 @@ export function AssinaturaPanel({ base, inicial, nomeArquivo, compacto = false }
   const [erro, setErro] = useState('');
   const [confirmar, setConfirmar] = useState<false | 'enviar' | 'reenviar'>(false);
   const status = estado.assinatura_status || '';
+  const cadastroOk = estado.cadastro_completo === true;
+  const atualizarCadastro = useCallback((dados: CadastroEstado) => setEstado(atual => ({ ...atual, ...dados })), []);
 
   // Descobre se a integração está configurada (consulta local, não chama a Autentique quando ainda não houve envio).
   useEffect(() => { if (!status) apiRequest<Estado>(`${base}/assinatura/`).then(dados => setEstado(atual => ({ ...atual, ...dados }))).catch(() => undefined); }, [base]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -32,6 +35,7 @@ export function AssinaturaPanel({ base, inicial, nomeArquivo, compacto = false }
   const baixar = () => executar(async () => compartilharOuBaixarPdf(await apiDownload(`${base}/assinatura/pdf/`), nomeArquivo)).catch(() => undefined);
 
   return <div className={`assinatura${compacto ? ' compacta' : ''}`}>
+    <CadastroLocatarioPanel base={base} bloqueado={status === 'pendente' || status === 'assinado'} onChange={atualizarCadastro}/>
     <div className="assinatura-topo">
       <span className="tile-icon"><Icon name="edit"/></span>
       <div className="assinatura-texto">
@@ -40,15 +44,16 @@ export function AssinaturaPanel({ base, inicial, nomeArquivo, compacto = false }
       </div>
       <span className={`status ${TOM[status]}`}>{ROTULO[status]}</span>
     </div>
+    {!cadastroOk && status !== 'assinado' && <p className="assinatura-aviso">Assinatura bloqueada: o cliente precisa concluir o formulário de cadastro. Depois, toque em Atualizar cadastro.</p>}
     {estado.assinatura_sandbox && status && <p className="assinatura-aviso">Modo teste da Autentique: sem validade jurídica e apagado em poucos dias.</p>}
     {estado.configurado === false && !status && <p className="assinatura-aviso">Configure o <code>AUTENTIQUE_TOKEN</code> no backend para enviar contratos.</p>}
     {estado.signatarios && <ul className="assinatura-partes">{estado.signatarios.map(parte => <li key={parte.nome}><Icon name={parte.assinou ? 'checkCircle' : parte.recusou ? 'x' : 'clock'} size={16}/>{parte.nome}<em>{parte.assinou ? 'assinou' : parte.recusou ? 'recusou' : 'pendente'}</em></li>)}</ul>}
     {erro && <Alert message={erro} onClose={() => setErro('')}/>}
     <div className="assinatura-acoes">
-      {!status && <button type="button" className="primary" disabled={ocupado || estado.configurado === false} onClick={() => setConfirmar('enviar')}><Icon name="share" size={18}/>Enviar para assinatura</button>}
-      {status === 'pendente' && estado.assinatura_link_empresa && <a className="primary" href={estado.assinatura_link_empresa} target="_blank" rel="noreferrer"><Icon name="edit" size={18}/>Assinar como empresa</a>}
+      {!status && <button type="button" className="primary" disabled={ocupado || estado.configurado === false || !cadastroOk} onClick={() => setConfirmar('enviar')}><Icon name="share" size={18}/>Enviar para assinatura</button>}
+      {status === 'pendente' && cadastroOk && estado.assinatura_link_empresa && <a className="primary" href={estado.assinatura_link_empresa} target="_blank" rel="noreferrer"><Icon name="edit" size={18}/>Assinar como empresa</a>}
       {(status === 'pendente' || status === 'recusado') && <button type="button" className="secondary" disabled={ocupado} onClick={atualizar}><Icon name="refresh" size={18}/>{ocupado ? 'Consultando...' : 'Atualizar status'}</button>}
-      {(status === 'pendente' || status === 'recusado') && <button type="button" className="ghost" disabled={ocupado} onClick={() => setConfirmar('reenviar')}>Reenviar</button>}
+      {(status === 'pendente' || status === 'recusado') && <button type="button" className="ghost" disabled={ocupado || !cadastroOk} onClick={() => setConfirmar('reenviar')}>Reenviar</button>}
       {status === 'assinado' && <button type="button" className="primary" disabled={ocupado} onClick={baixar}><Icon name="file" size={18}/>{ocupado ? 'Baixando...' : <PdfLabel documento="PDF assinado"/>}</button>}
     </div>
     <ConfirmActionModal open={Boolean(confirmar)} title={confirmar === 'reenviar' ? 'Reenviar para assinatura?' : 'Enviar para assinatura?'}

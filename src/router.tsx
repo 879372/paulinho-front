@@ -1,3 +1,4 @@
+import { CadastroLocatarioPage } from './pages/CadastroLocatarioPage';
 import { OperacoesPage } from './pages/OperacoesPage';
 import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { ProtectedRoute } from './auth/ProtectedRoute';
@@ -13,6 +14,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { NovoContratoPage } from './pages/NovoContratoPage';
 
 export const router = createBrowserRouter([
+  { path: '/cadastro-locacao', element: <CadastroLocatarioPage /> },
   { path: '/login', element: <LoginPage /> },
   {
     element: <ProtectedRoute />,

@@ -883,3 +883,38 @@ a.metric:hover { border-color: var(--border-strong); }
 
 .caucao-resumo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0 0; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); font-size: 13px; }
 .caucao-resumo b { display: inline; font-size: 13px; margin-right: 6px; }
+/* Cadastro do locatário e formulário público */
+.cadastro-locatario-panel { margin-bottom: 18px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); }
+.cadastro-locatario-head { display: flex; align-items: flex-start; gap: 10px; }
+.cadastro-locatario-head > svg { color: var(--primary); margin-top: 2px; }
+.cadastro-locatario-head > div { flex: 1; min-width: 0; }
+.cadastro-locatario-head b { font-size: 14px; }
+.cadastro-locatario-head span:not(.status) { display: block; margin-top: 4px; color: var(--text-2); font-size: 13px; }
+.cadastro-locatario-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.cadastro-locatario-actions button { min-height: 40px; font-size: 13px; padding-inline: 12px; }
+.cadastro-link { margin-top: 14px; }
+.cadastro-link input { font-size: 13px !important; }
+.public-cadastro { min-height: 100dvh; }
+.public-cadastro-brand { padding: 24px 20px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.public-cadastro-brand .brand { max-width: 760px; margin: auto; }
+.public-cadastro-content { max-width: 800px; margin: auto; padding: 24px 16px 48px; }
+.public-cadastro-intro { margin-bottom: 20px; }
+.public-cadastro-intro h1 { font-size: clamp(25px,5vw,34px); font-weight: 800; letter-spacing: -.03em; }
+.public-cadastro-intro p { color: var(--text-2); font-size: 14px; line-height: 1.6; }
+.public-cadastro-context { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 14px; border-radius: var(--radius); background: var(--primary-soft); }
+.public-cadastro-context > svg { color: var(--primary); }
+.public-cadastro-context b { display: block; font-size: 14px; }
+.public-cadastro-context small { display: block; margin-top: 3px; color: var(--text-2); font-size: 12px; }
+.public-cadastro-form { padding: 20px 16px; }
+.public-cadastro-group { padding-bottom: 22px; margin-bottom: 22px; border-bottom: 1px solid var(--border); }
+.public-cadastro-group h2 { margin-bottom: 16px; font-size: 17px; font-weight: 800; }
+.public-cadastro-check { display: flex; align-items: flex-start; gap: 10px; color: var(--text-2); font-size: 13px; line-height: 1.5; }
+.public-cadastro-check input { flex: none; margin-top: 2px; }
+.public-cadastro-submit { margin-top: 20px; }
+.public-cadastro-submit button { width: 100%; }
+.public-cadastro-submit small { display: block; margin: 12px 0 0; text-align: center; color: var(--text-3); font-size: 12px; }
+.public-cadastro-success { margin: 28px auto; padding: 32px 24px; text-align: center; }
+.public-cadastro-success .tile-icon { margin: 0 auto 16px; width: 60px; height: 60px; }
+.public-cadastro-success h1 { font-size: 26px; }
+.public-cadastro-success p { color: var(--text-2); line-height: 1.6; }
+@media(min-width:640px) { .public-cadastro-form { padding: 28px; } }

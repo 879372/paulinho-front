@@ -143,3 +143,12 @@ export async function compartilharOuBaixarPdf(arquivo: Blob, nome: string) {
 }
 
 export type PageResponse<T> = { count: number; next: string | null; previous: string | null; results: T[] };
+
+/** Formulários por link não usam nem alteram a sessão do operador. */
+export async function apiPublicRequest<T>(path: string, dados: unknown): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, { method: 'POST', credentials: 'omit', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
+  const json = (response.headers.get('content-type') || '').includes('application/json') ? await response.json() : null;
+  if (!response.ok) throw new ApiError(mensagemDeErro(json, 'Não foi possível enviar os dados.'), response.status, json);
+  if (!json) throw new ApiError('Resposta inválida. Tente novamente.', response.status);
+  return json as T;
+}
